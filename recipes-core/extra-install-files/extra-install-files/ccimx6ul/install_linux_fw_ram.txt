@@ -1,0 +1,121 @@
+echo ===========================
+echo == Custom Install Script ==
+echo ===========================
+
+echo ""
+echo " This process will erase your NAND and will install a new"
+echo " U-Boot and Linux firmware images on the NAND."
+echo ""
+echo " Press CTRL+C now if you wish to abort or wait 10 seconds"
+echo " to continue."
+
+sleep 10
+if test $? -eq 1; then
+	echo "Aborted by user.";
+	exit;
+fi
+
+# Reset environment to defaults and save changes
+env default -a
+saveenv
+saveenv
+
+setenv loadaddr ##LOADADDR## 
+
+# set some environment variables 
+setenv uboot_loadaddr ##UBOOT_LOADADDR##;
+setenv uboot_filesize ##UBOOT_FILESIZE##;
+setenv linux_loadaddr ##LINUX_LOADADDR##;
+setenv linux_filesize ##LINUX_FILESIZE##;
+setenv recovery_loadaddr ##RECOVERY_LOADADDR##;
+setenv recovery_filesize ##RECOVERY_FILESIZE##; 
+setenv rootfs_loadaddr ##ROOTFS_LOADADDR##;
+setenv rootfs_filesize ##ROOTFS_FILESIZE##;
+
+# Skip user confirmation for U-Boot update
+setenv forced_update 1;
+
+# Update U-Boot
+echo ""
+echo ""
+echo ">>Installing U-Boot bootloader"
+echo ""
+echo ""
+update uboot ram ${uboot_loadaddr} ${uboot_filesize};
+if test $? -eq 1; then
+    echo "[ERROR] Failed to update U-Boot bootloader!";
+    echo "";
+    echo "Aborted.";
+    exit;
+fi
+
+
+# Erase and program the linux partition
+nand erase.part linux
+ubi part linux
+ubi createvol linux
+
+echo ""
+echo ""
+echo ">>Installing Linux kernel and device tree files"
+echo ""
+echo ""
+update linux ram ${linux_loadaddr} ${linux_filesize};
+if test $? -eq 1; then
+    echo "[ERROR] Failed to update linux partition!";
+    echo "";
+    echo "Aborted.";
+    exit;
+fi
+
+# Erase and program the recovery partition
+nand erase.part recovery
+ubi part recovery
+ubi createvol recovery
+
+echo ""
+echo ""
+echo ">>Installing recovery"
+echo ""
+echo ""
+update recovery ram ${recovery_loadaddr} ${recovery_filesize};
+if test $? -eq 1; then
+    echo "[ERROR] Failed to update recovery partition!";
+    echo "";
+    echo "Aborted.";
+    exit;
+fi
+
+
+# Erase and program the rootfs partition
+nand erase.part rootfs
+ubi part rootfs
+ubi createvol rootfs
+
+echo ""
+echo ""
+echo ">>Installing Linux root filesystem"
+echo ""
+echo ""
+update rootfs ram ${rootfs_loadaddr} ${rootfs_filesize};
+if test $? -eq 1; then
+    echo "[ERROR] Failed to update rootfs partition!";
+    echo "";
+    echo "Aborted.";
+    exit;
+fi
+
+echo ""
+echo ""
+echo "***********"
+echo "* SUCCESS *"
+echo "***********"
+echo ""
+
+env default -a
+saveenv
+saveenv
+ 
+echo "Rebooting system..."
+sleep 2
+reset

@@ -1,0 +1,41 @@
+<!--
+* Copyright (C) 2012, Freescale Semiconductor, Inc. All Rights Reserved.
+* The CFG element contains a list of recognized usb devices.
+*  DEV elements provide a name, class, vid and pid for each device.
+*
+* Each LIST element contains a list of update instructions.
+*  "Install" - Erase media and install firmware.
+*  "Update" - Update firmware only.
+*
+* Each CMD element contains one update instruction of attribute type.
+*  "pull" - Does UtpRead(body, file) transaction.
+*  "push" - Does UtpWrite(body, file) transaction.
+*  "drop" - Does UtpCommand(body) then waits for device to disconnect.
+*  "boot" - Finds configured device, forces it to "body" device and downloads "file".
+*  "find" - Waits for "timeout" seconds for the "body" device to connect.
+*  "show" - Parse and show device info in "file".  
+-->
+
+
+<UCL>
+  <CFG>
+    <STATE name="BootStrap" dev="MX6SL" vid="15A2" pid="0063"/>
+    <STATE name="BootStrap" dev="MX6D" vid="15A2" pid="0061"/>
+    <STATE name="BootStrap" dev="MX6Q" vid="15A2" pid="0054"/>
+    <STATE name="BootStrap" dev="MX6SX" vid="15A2" pid="0071"/>
+    <STATE name="BootStrap" dev="MX6UL" vid="15A2" pid="007D"/>
+    <STATE name="BootStrap" dev="MX7D" vid="15A2" pid="0076"/>
+    <STATE name="Updater"   dev="MSC" vid="066F" pid="37FF"/>
+  </CFG>
+
+  <LIST name="CC6UL RAM Install" desc="Installation via RAM">
+    <CMD state="BootStrap" type="boot" body="BootStrap" file ="firmware/u-boot-##MACHINE##.imx" ifdev="MX6UL">Loading U-Boot into RAM</CMD>
+	<CMD state="BootStrap" type="load" file="firmware/install_linux_fw_ram.scr" address="##SCRIPT_LOADADDR##" loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE">Loading install script to flash</CMD>
+	<CMD state="BootStrap" type="load" file="firmware/u-boot-##MACHINE##.imx" address="##UBOOT_LOADADDR##" loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE">Loading U-Boot to flash</CMD>
+	<CMD state="BootStrap" type="load" file="firmware/##LINUX_FILENAME##" address="##LINUX_LOADADDR##" loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6UL">Loading linux partition</CMD>
+    <CMD state="BootStrap" type="load" file="firmware/##RECOVERY_FILENAME##" address="##RECOVERY_LOADADDR##" loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6UL">Loading recovery partition</CMD>
+	<CMD state="BootStrap" type="load" file="firmware/##ROOTFS_FILENAME##" address="##ROOTFS_LOADADDR##" loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6UL">Loading rootfs partition</CMD>
+    <CMD state="BootStrap" type="jump">Launching U-Boot</CMD>
+  </LIST>
+
+</UCL>
