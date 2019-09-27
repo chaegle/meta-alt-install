@@ -115,6 +115,9 @@ setenv bootcmd "
 		echo \"[ERROR] Failed to load ${INSTALL_LINUX_FILENAME}\";
 		exit;
 	fi;
+        nand erase.part linux;
+        ubi part linux;
+        ubi createvol linux;
 	update linux ram;
 	if test \$? -eq 1; then;
 		echo \"[ERROR] Failed to update linux partition!\";
@@ -132,6 +135,9 @@ setenv bootcmd "
 		echo \"[ERROR] Failed to load ${INSTALL_RECOVERY_FILENAME}\";
 		exit;
 	fi;
+        nand erase.part recovery;
+        ubi part recovery;
+        ubi createvol recovery;
 	update recovery ram;
 	if test \$? -eq 1; then;
 		echo \"[ERROR] Failed to update recovery partition!\";
@@ -149,6 +155,9 @@ setenv bootcmd "
 		echo \"[ERROR] Failed to load ${INSTALL_ROOTFS_FILENAME}\";
 		exit;
 	fi;
+        nand erase.part rootfs;
+        ubi part rootfs;
+        ubi createvol rootfs;
 	update rootfs ram;
 	if test \$? -eq 1; then;
 		echo \"[ERROR] Failed to update rootfs partition!\";
