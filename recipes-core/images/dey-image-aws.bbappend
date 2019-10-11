@@ -5,7 +5,59 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS += " extra-install-files"
+DEPENDS += " extra-install-files zip-native u-boot-mkimage-native"
+
+INSTALLER_SCRIPT_FOLDER = "mfgtool_installer"
+
+# Generate ZIP Archive, containing all files necessary for use 
+# with NXP's MfgTool2 utility
+#
+generate_mfgtool_installer_zip() {
+
+   # create mfgtool folder structure
+   install -d "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}"
+   # copy files
+   install -m 0644 ${DEPLOY_DIR_IMAGE}/ucl2.xml "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware"
+   install -m 0644 ${DEPLOY_DIR_IMAGE}/install_linux_fw_ram.scr "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}"
+   install -m 0644 ${DEPLOY_DIR_IMAGE}/run_mfgtool.bat "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}"
+
+   # Symlinks of DEY artifacts
+   # Make sure symlinks exist
+   if readlink -e ${DEPLOY_DIR_IMAGE}/$UBOOT_FILENAME > /dev/null; then
+           ln -s ${DEPLOY_DIR_IMAGE}/$UBOOT_FILENAME "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}/$UBOOT_FILENAME"
+   else
+           # TODO: Abort with error message
+           bberror "File, ${DEPLOY_DIR_IMAGE}/$UBOOT_FILENAME NOT found."
+   fi
+
+   if readlink -e ${DEPLOY_DIR_IMAGE}/$LINUX_FILENAME > /dev/null; then
+           ln -s ${DEPLOY_DIR_IMAGE}/$LINUX_FILENAME "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}/$LINUX_FILENAME"
+   else
+           # TODO: Abort with error message
+           bberror "File, ${DEPLOY_DIR_IMAGE}/$LINUX_FILENAME NOT found"
+   fi
+
+   if readlink -e ${DEPLOY_DIR_IMAGE}/$RECOVERY_FILENAME > /dev/null; then
+           ln -s ${DEPLOY_DIR_IMAGE}/$RECOVERY_FILENAME "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}/$RECOVERY_FILENAME"
+   else
+           # TODO: Abort with error message
+           bberror "File, ${DEPLOY_DIR_IMAGE}/$RECOVERY_FILENAME NOT found"
+   fi
+
+   if readlink -e ${DEPLOY_DIR_IMAGE}/$ROOTFS_FILENAME > /dev/null; then
+           ln -s ${DEPLOY_DIR_IMAGE}/$ROOTFS_FILENAME "${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}/Profiles/${MACHINE}-ram-install/OS Firmware/${MACHINE}/$ROOTFS_FILENAME"
+   else
+           # TODO: Abort with error message
+           bberror "File, ${DEPLOY_DIR_IMAGE}/$ROOTFS_FILENAME NOT found"
+   fi
+
+# TODO: Zip up mfgtool_installer_dir folder (sans base folder)
+
+   cd ${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}
+   zip -r ${INSTALLER_SCRIPT_FOLDER}.zip *
+   mv ${INSTALLER_SCRIPT_FOLDER}.zip ${DEPLOY_DIR_IMAGE}
+}
+
 
 do_install_script() {
 
@@ -59,6 +111,27 @@ do_install_script() {
    sed -i -e "s,##ROOTFS_LOADADDR##,$(printf "0x%x" $ROOTFS_LOADADDR),g" ${DEPLOY_DIR_IMAGE}/ucl2.xml
 
    mkimage -T script -n "RAM Install Script" -C none -d ${DEPLOY_DIR_IMAGE}/install_linux_fw_ram.txt ${DEPLOY_DIR_IMAGE}/install_linux_fw_ram.scr
+
+generate_mfgtool_install_zip;
+
 }
 
 addtask install_script after do_image_complete
+
+do_clean_script() {
+
+  # TODO: Add check for existence of file before trying to delete
+  FILE="${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}"
+  if test -d "$FILE"; then
+          `rm -Rf ${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}`
+  fi
+
+  # TODO: Add check for existence of file before trying to delete
+  FILE="${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}.zip"
+  if test -f "$FILE"; then
+          `rm ${DEPLOY_DIR_IMAGE}/${INSTALLER_SCRIPT_FOLDER}.zip`
+  fi
+}
+
+addtask clean_script before install_script
+

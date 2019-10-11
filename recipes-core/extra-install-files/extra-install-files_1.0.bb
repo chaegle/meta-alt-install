@@ -19,3 +19,9 @@ do_install () {
     install -m 0644 ${WORKDIR}/ucl2.xml ${DEPLOY_DIR_IMAGE}/
     install -m 0644 ${WORKDIR}/run_mfgtool.bat ${DEPLOY_DIR_IMAGE}/
 }
+
+do_clean_extra_install_files () {
+    rm ${DEPLOY_DIR_IMAGE}/install_linux_fw_ram.txt
+    rm ${DEPLOY_DIR_IMAGE}/ucl2.xml
+    rm ${DEPLOY_DIR_IMAGE}/run_mfgtool.bat
+}

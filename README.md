@@ -69,6 +69,7 @@ USAGE
 LIMITATIONS
 -----------
 
-- After the successful execution a subsequent execution of the do_install_script task will have no impact on the output artifacts, i.e. the ucl2.xml and install_linux_fw_ram.txt[scr] will not change, as the source files have already had their ##<variable>## tags replaced. Presently the solution for this is to manually remove these files and re-bitbake the project.
+- After the successful execution a subsequent execution of the do_install_script task will have no impact on the output artifacts, i.e. the ucl2.xml and install_linux_fw_ram.txt[scr] will not change, as the source files have already had their ##<variable>## tags replaced. The task do_clean_extrai_install_files has been added to delete these files. 
 - Currently no support for the 1GB SOM. This is to say that the outputted artifact (i.e. mfgtool_installer.zip) does not include the 1GB U-boot image.
 - No support for TrustFence enabled images. In particular this meta does not support closing OR updating a close device.
+- Support for the dey-image-aws image has not been fully tested.

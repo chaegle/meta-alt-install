@@ -5,7 +5,7 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS += " extra-install-files zip-native"
+DEPENDS += " extra-install-files zip-native u-boot-mkimage-native"
 
 INSTALLER_SCRIPT_FOLDER = "mfgtool_installer"
 
@@ -51,7 +51,6 @@ generate_mfgtool_installer_zip() {
            # TODO: Abort with error message
            bberror "File, ${DEPLOY_DIR_IMAGE}/$ROOTFS_FILENAME NOT found"
    fi
-
 
 # TODO: Zip up mfgtool_installer_dir folder (sans base folder)
  
